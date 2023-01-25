@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+void sort_letters(char *phrase) {
+    int n = strlen(phrase);
+    for (int i = 0; i < n-1; i++) {
+        for (int j = i+1; j < n; j++) {
+            if (phrase[i] > phrase[j]) {
+                    char temp = phrase[i];
+                    phrase[i] = phrase[j];
+                    phrase[j] = temp;
+            }
+        }
+    }
+}
+char** gridStr(char *line, char *key)
+{
+    int n = strlen(line);    
+    int columns = strlen(key);
+    int rows = (n + columns - 1) / columns;
+
+    char **matrix = malloc(rows * sizeof(char *));
+    for (int j = 0; j < rows; j++) {
+        matrix[j] = malloc(columns * sizeof(char));
+    }
+
+    int i = 0;
+    for (int k = 0; k < rows; k++) {
+        for (int l = 0; l < columns; l++) {
+            if (i<n) {
+                matrix[k][l] = line[i++];
+            } else {
+                matrix[k][l] = '*'; 
+            }
+        }
+    }
+    return matrix;
+}
+void swap_matrix_columns(char **matrix, int rows, int columns, int i, int j) {
+    for (int k = 0; k < rows; k++) {
+        char tmp = matrix[k][i];
+        matrix[k][i] = matrix[k][j];
+        matrix[k][j] = tmp;
+    }    
+}
+void print_matrix(char **matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++){
+        printf("Row %2d: ", i);
+        for (int j = 0; j < columns; j++) {
+            putchar(matrix[i][j]);
+        }
+        putchar('\n');
+    }
+}
+void encrypt(char **matrix, int rows, int columns, char *key) {
+    char sorted_key[strlen(key)];
+    strcpy(sorted_key, key);
+    sort_letters(sorted_key);
+    printf("Sorted key: %s  (length: %2zu)\n", sorted_key, strlen(sorted_key));
+
+    bool is_used[columns];
+    for (int i = 0; i < columns; i++) is_used[i]= false;
+
+    for (int i = 0; i < columns; i++) {
+        if (!is_used[i]) {
+            int j;
+            for (j = 0; j < columns; j++) {
+                if (key[i] == sorted_key[j] && !is_used[j]) {
+                    break;
+                }
+            }
+            swap_matrix_columns(matrix, rows, columns, i, j);
+            is_used[i] = true;
+            is_used[j] = true;
+        }
+    }
+}
+
+int main(void) {
+    char key[50];
+    char line[256];
+    
+    printf("Enter your string: ");
+    if (fgets(line, sizeof line, stdin) == NULL) {
+        fprintf(stderr, "No line read\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    printf("Enter your key: ");
+    if (fgets(key, sizeof key, stdin) == NULL) {
+        fprintf(stderr, "No line read\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    int len = strlen(line);
+    if (len && line[len - 1] == '\n') {
+        line[--len] = '\0';
+    }
+        
+    int len1 = strlen(key);
+    if (len1 && key[len1 - 1] == '\n') {
+        key[--len1]= '\0';
+    }
+    char **matrix = gridStr(line, key);
+
+    int columns = len1;
+    int rows = (len + columns - 1) / columns;
+
+    print_matrix(matrix, rows, columns);
+    encrypt(matrix, rows, columns, key);
+    print_matrix(matrix, rows, columns);
+
+    for (int row = 0; row < rows; row++) {
+        free(matrix[row]);
+    }
+    free(matrix);
+
+    return EXIT_SUCCESS;
+}
