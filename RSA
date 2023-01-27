@@ -128,4 +128,5 @@ m[i]=-1;
 printf("\nTHE DECRYPTED MESSAGE IS\n");
 for(i=0;m[i]!=-1;i++)
 printf("%c",m[i]);
+return 0;
 }
